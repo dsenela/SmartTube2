@@ -713,6 +713,7 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
                             getView().showProgressBar(false);
 
                             filterHomeIfNeeded(mediaGroups);
+                            moveRecentlyUploadedToTop(mediaGroups);
 
                             for (MediaGroup mediaGroup : mediaGroups) {
                                 if (mediaGroup.isEmpty()) {
@@ -1011,6 +1012,42 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
                 getContext().getString(R.string.breaking_news_row_name),
                 getContext().getString(R.string.covid_news_row_name)
         ));
+    }
+
+    /**
+     * Move "Recently Uploaded" subscription row to the top of Home section
+     */
+    private void moveRecentlyUploadedToTop(List<MediaGroup> mediaGroups) {
+        if (mediaGroups == null || !isHomeSection() || mediaGroups.isEmpty()) {
+            return;
+        }
+
+        // Find the row that contains recently uploaded content from subscriptions
+        // This row typically has titles like "Latest from your subscriptions", "Recent uploads", etc.
+        int recentUploadsIndex = -1;
+        for (int i = 0; i < mediaGroups.size(); i++) {
+            MediaGroup group = mediaGroups.get(i);
+            String title = group.getTitle();
+            if (title != null) {
+                // Check for common patterns in recently uploaded subscription content row titles
+                // Note: These patterns may vary by language/locale
+                if (title.toLowerCase().contains("subscription") ||
+                    title.toLowerCase().contains("latest") ||
+                    title.toLowerCase().contains("recent") ||
+                    title.toLowerCase().contains("new video") ||
+                    title.toLowerCase().contains("uploads from")) {
+                    recentUploadsIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Move the found row to position 0
+        if (recentUploadsIndex > 0) {
+            MediaGroup recentUploadsRow = mediaGroups.remove(recentUploadsIndex);
+            mediaGroups.add(0, recentUploadsRow);
+            Log.d(TAG, "Moved 'Recently Uploaded' row to top: " + recentUploadsRow.getTitle());
+        }
     }
 
     private int moveToTopIfNeeded(MediaGroup mediaGroup) {
