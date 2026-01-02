@@ -1015,39 +1015,68 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
     }
 
     /**
-     * Move "Recently Uploaded" subscription row to the top of Home section
+     * Filter and order Home section rows to show only:
+     * 1. Recently Uploaded
+     * 2. Recommended
+     * 3. New to you
      */
     private void moveRecentlyUploadedToTop(List<MediaGroup> mediaGroups) {
         if (mediaGroups == null || !isHomeSection() || mediaGroups.isEmpty()) {
             return;
         }
 
-        // Find the row that contains recently uploaded content from subscriptions
-        // This row typically has titles like "Latest from your subscriptions", "Recent uploads", etc.
-        int recentUploadsIndex = -1;
-        for (int i = 0; i < mediaGroups.size(); i++) {
-            MediaGroup group = mediaGroups.get(i);
+        MediaGroup recentlyUploaded = null;
+        MediaGroup recommended = null;
+        MediaGroup newToYou = null;
+
+        // Find the three target rows
+        for (MediaGroup group : mediaGroups) {
             String title = group.getTitle();
             if (title != null) {
-                // Check for common patterns in recently uploaded subscription content row titles
-                // Note: These patterns may vary by language/locale
-                if (title.toLowerCase().contains("subscription") ||
-                    title.toLowerCase().contains("latest") ||
-                    title.toLowerCase().contains("recent") ||
-                    title.toLowerCase().contains("new video") ||
-                    title.toLowerCase().contains("uploads from")) {
-                    recentUploadsIndex = i;
-                    break;
+                String lowerTitle = title.toLowerCase();
+
+                // Match "Recently Uploaded" row
+                if (recentlyUploaded == null && (
+                    lowerTitle.contains("subscription") ||
+                    lowerTitle.contains("latest") ||
+                    lowerTitle.contains("recent") ||
+                    lowerTitle.contains("new video") ||
+                    lowerTitle.contains("uploads from"))) {
+                    recentlyUploaded = group;
+                    Log.d(TAG, "Found Recently Uploaded row: " + title);
+                }
+                // Match "Recommended" row
+                else if (recommended == null && (
+                    lowerTitle.contains("recommend") ||
+                    lowerTitle.contains("for you") ||
+                    lowerTitle.contains("suggested"))) {
+                    recommended = group;
+                    Log.d(TAG, "Found Recommended row: " + title);
+                }
+                // Match "New to you" row
+                else if (newToYou == null && (
+                    lowerTitle.contains("new to you") ||
+                    lowerTitle.contains("explore"))) {
+                    newToYou = group;
+                    Log.d(TAG, "Found New to you row: " + title);
                 }
             }
         }
 
-        // Move the found row to position 0
-        if (recentUploadsIndex > 0) {
-            MediaGroup recentUploadsRow = mediaGroups.remove(recentUploadsIndex);
-            mediaGroups.add(0, recentUploadsRow);
-            Log.d(TAG, "Moved 'Recently Uploaded' row to top: " + recentUploadsRow.getTitle());
+        // Clear the list and add only the matched rows in the desired order
+        mediaGroups.clear();
+
+        if (recentlyUploaded != null) {
+            mediaGroups.add(recentlyUploaded);
         }
+        if (recommended != null) {
+            mediaGroups.add(recommended);
+        }
+        if (newToYou != null) {
+            mediaGroups.add(newToYou);
+        }
+
+        Log.d(TAG, "Home section filtered to " + mediaGroups.size() + " rows (Recently Uploaded, Recommended, New to you)");
     }
 
     private int moveToTopIfNeeded(MediaGroup mediaGroup) {
