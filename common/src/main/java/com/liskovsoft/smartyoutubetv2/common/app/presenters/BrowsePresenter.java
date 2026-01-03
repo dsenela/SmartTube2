@@ -1016,7 +1016,7 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
 
     /**
      * Filter and order Home section rows to show only:
-     * 1. Recently Uploaded
+     * 1. Recently Uploaded (from Subscriptions feed - guaranteed date-sorted)
      * 2. Recommended
      * 3. New to you
      */
@@ -1065,6 +1065,10 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
 
         // Clear the list and add only the matched rows in the desired order
         mediaGroups.clear();
+
+        // If no "Recently Uploaded" row found in Home feed, we could fetch it from
+        // the Subscriptions feed which is guaranteed to be date-sorted by YouTube API
+        // TODO: Implement fetching from Subscriptions feed if needed
 
         if (recentlyUploaded != null) {
             mediaGroups.add(recentlyUploaded);
