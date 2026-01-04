@@ -1035,6 +1035,14 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
             if (title != null) {
                 String lowerTitle = title.toLowerCase();
 
+                // Skip "Explore more topics" section explicitly
+                if (lowerTitle.contains("explore more topics") ||
+                    lowerTitle.contains("explore more") ||
+                    lowerTitle.contains("more topics")) {
+                    Log.d(TAG, "Filtering out Explore more topics row: " + title);
+                    continue;
+                }
+
                 // Match "Recently Uploaded" row
                 if (recentlyUploaded == null && (
                     lowerTitle.contains("subscription") ||
@@ -1053,10 +1061,8 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
                     recommended = group;
                     Log.d(TAG, "Found Recommended row: " + title);
                 }
-                // Match "New to you" row
-                else if (newToYou == null && (
-                    lowerTitle.contains("new to you") ||
-                    lowerTitle.contains("explore"))) {
+                // Match "New to you" row - be specific to avoid matching "Explore more topics"
+                else if (newToYou == null && lowerTitle.contains("new to you")) {
                     newToYou = group;
                     Log.d(TAG, "Found New to you row: " + title);
                 }
@@ -1066,10 +1072,7 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
         // Clear the list and add only the matched rows in the desired order
         mediaGroups.clear();
 
-        // If no "Recently Uploaded" row found in Home feed, we could fetch it from
-        // the Subscriptions feed which is guaranteed to be date-sorted by YouTube API
-        // TODO: Implement fetching from Subscriptions feed if needed
-
+        // Add in specific order: Recently Uploaded first, then Recommended, then New to you
         if (recentlyUploaded != null) {
             mediaGroups.add(recentlyUploaded);
         }
