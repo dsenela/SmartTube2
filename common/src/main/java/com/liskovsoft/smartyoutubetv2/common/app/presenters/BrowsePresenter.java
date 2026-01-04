@@ -1025,47 +1025,42 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
             return;
         }
 
+        // Log all row titles for debugging
+        Log.d(TAG, "=== Home Section Rows (BEFORE filtering) ===");
+        for (MediaGroup group : mediaGroups) {
+            Log.d(TAG, "Row title: '" + group.getTitle() + "'");
+        }
+        Log.d(TAG, "============================================");
+
         MediaGroup recentlyUploaded = null;
         MediaGroup recommended = null;
         MediaGroup newToYou = null;
 
-        // Find the three target rows
+        // Find the three target rows using exact title matching
         for (MediaGroup group : mediaGroups) {
             String title = group.getTitle();
-            if (title != null) {
-                String lowerTitle = title.toLowerCase();
+            if (title == null) {
+                continue;
+            }
 
-                // Skip "Explore more topics" section explicitly
-                if (lowerTitle.contains("explore more topics") ||
-                    lowerTitle.contains("explore more") ||
-                    lowerTitle.contains("more topics")) {
-                    Log.d(TAG, "Filtering out Explore more topics row: " + title);
-                    continue;
-                }
+            // Skip "Explore more topics" section explicitly
+            if (title.equals("Explore more topics")) {
+                Log.d(TAG, "Filtering out: " + title);
+                continue;
+            }
 
-                // Match "Recently Uploaded" row
-                if (recentlyUploaded == null && (
-                    lowerTitle.contains("subscription") ||
-                    lowerTitle.contains("latest") ||
-                    lowerTitle.contains("recent") ||
-                    lowerTitle.contains("new video") ||
-                    lowerTitle.contains("uploads from"))) {
-                    recentlyUploaded = group;
-                    Log.d(TAG, "Found Recently Uploaded row: " + title);
-                }
-                // Match "Recommended" row
-                else if (recommended == null && (
-                    lowerTitle.contains("recommend") ||
-                    lowerTitle.contains("for you") ||
-                    lowerTitle.contains("suggested"))) {
-                    recommended = group;
-                    Log.d(TAG, "Found Recommended row: " + title);
-                }
-                // Match "New to you" row - be specific to avoid matching "Explore more topics"
-                else if (newToYou == null && lowerTitle.contains("new to you")) {
-                    newToYou = group;
-                    Log.d(TAG, "Found New to you row: " + title);
-                }
+            // Match exact titles (case-sensitive)
+            if (recentlyUploaded == null && title.equals("Recently uploaded")) {
+                recentlyUploaded = group;
+                Log.d(TAG, "Matched Recently Uploaded: " + title);
+            }
+            else if (recommended == null && title.equals("Recommended")) {
+                recommended = group;
+                Log.d(TAG, "Matched Recommended: " + title);
+            }
+            else if (newToYou == null && title.equals("New to you")) {
+                newToYou = group;
+                Log.d(TAG, "Matched New to you: " + title);
             }
         }
 
@@ -1075,15 +1070,18 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
         // Add in specific order: Recently Uploaded first, then Recommended, then New to you
         if (recentlyUploaded != null) {
             mediaGroups.add(recentlyUploaded);
+            Log.d(TAG, "Added to position 0: Recently uploaded");
         }
         if (recommended != null) {
             mediaGroups.add(recommended);
+            Log.d(TAG, "Added to position " + (mediaGroups.size() - 1) + ": Recommended");
         }
         if (newToYou != null) {
             mediaGroups.add(newToYou);
+            Log.d(TAG, "Added to position " + (mediaGroups.size() - 1) + ": New to you");
         }
 
-        Log.d(TAG, "Home section filtered to " + mediaGroups.size() + " rows (Recently Uploaded, Recommended, New to you)");
+        Log.d(TAG, "Final row count: " + mediaGroups.size() + " - Order should be: Recently Uploaded -> Recommended -> New to you");
     }
 
     private int moveToTopIfNeeded(MediaGroup mediaGroup) {
