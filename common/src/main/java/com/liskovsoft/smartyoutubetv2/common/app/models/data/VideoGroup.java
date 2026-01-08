@@ -118,6 +118,12 @@ public class VideoGroup {
         for (MediaItem item : mediaGroup.getMediaItems()) {
             Video video = Video.from(item);
 
+            // Filter out videos shorter than 4 minutes (240,000 ms)
+            if (video.getDurationMs() > 0 && video.getDurationMs() < 240_000) {
+                Log.d(TAG, "Filtered out short video: " + video.getTitle() + " (Duration: " + (video.getDurationMs() / 1000) + "s)");
+                continue;
+            }
+
             videoGroup.add(video);
         }
 
@@ -138,6 +144,12 @@ public class VideoGroup {
 
         for (MediaItem item : mediaGroup.getMediaItems()) {
             Video video = Video.from(item);
+
+            // Filter out videos shorter than 4 minutes (240,000 ms)
+            if (video.getDurationMs() > 0 && video.getDurationMs() < 240_000) {
+                Log.d(TAG, "Filtered out short video: " + video.getTitle() + " (Duration: " + (video.getDurationMs() / 1000) + "s)");
+                continue;
+            }
 
             baseGroup.add(video);
         }
